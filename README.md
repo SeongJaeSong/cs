@@ -316,7 +316,7 @@ https://backlog.com/git-tutorial/kr/stepup/stepup1_4.html
 - Merge
   ![Merge](./md_images/merge.png)
 - Rebase
-  ![Rebase](./md_images/Rebase.png)
+  ![Rebase](./md_images/rebase.png)
   <br>
   <br>
 
@@ -852,7 +852,7 @@ https://backlog.com/git-tutorial/kr/stepup/stepup1_4.html
     <br>
     <br>
 
-# **Q. C++ virtual **
+# **Q. C++ virtual**
 
 - 상속 관계에서 자식 클래스가 부모 클래스의 메소드를 오버라이딩 하기 위해 사용
 - 가상함수라고 함
@@ -865,7 +865,7 @@ https://backlog.com/git-tutorial/kr/stepup/stepup1_4.html
 <br>
 <br>
 
-# **Q. 자바와 C++에서 오버라이딩의 차이**
+# **Q. 자바와 C++의 오버라이딩**
 
 - 자바는 실제 객체의 메소드를 수행하고, C++은 객체를 선언할 때 명시한 타입을 따름
 
@@ -892,7 +892,7 @@ https://backlog.com/git-tutorial/kr/stepup/stepup1_4.html
 <br>
 <br>
 
-# **Q. C++ 메모리 관리 비법**
+# **Q. C++ 메모리 관리**
 
 - 사용이 끝난 메모리는 해제한다.
 - 새로운 메모리를 할당 할 때: new 또는 malloc 사용
