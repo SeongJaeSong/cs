@@ -1255,7 +1255,36 @@ https://backlog.com/git-tutorial/kr/stepup/stepup1_4.html
 
 # **Q. HTTP 프로토콜**
 
-- TCP와 UDP를 사용하며 80번 포트를 이용
+- 클라이언트와 서버 상호간에 데이터를 주고받기 위해 정의한 규칙
+- Statless 프로토콜: 데이터를 주고 받기 위한 각각의 데이터 요청이 서로 독립적으로 관리가 된다. 즉, 이전의 데이터 요청과 현재 데이터 요청은 서로 관련이 없다.
+- TCP/IP통신 위에서 동작, TCP와 UDP를 사용하며 80번 포트를 이용
+- Methods
+  - GET: 존재하는 자원에 대한 요청
+  - POST: 새로운 자원을 생성
+  - PUT: 존재하는 자원에 대한 변경
+  - DELTE: 존재하는 자원에 대한 삭제
+  - PATCH: PUT과 비슷하나, PATCH는 해당 자원의 일부를 교체하는 의미
+  - HEAD: 서버 헤더 정보를 획득. GET과 비슷하나 Response Body를 반환하지 않음(웹서버 정보 확인, 헬스체크, 버전확인, 최종수정일자 확인 등 용도로 사용)
+  - OPTIONS: 서버 옵션들을 확인하기 위한 요청. [CORS](#q-CORS)에서 사용
+- Status Codes
+  - 2xx(성공)
+    - 200: GET 요청에 대한 성공
+    - 204: No Content. 성공했으나 응답 본문에 데이터가 없음
+    - 205: Reset Content. 성공했으나 클라이언트의 화면을 새로 고침하도록 권고
+    - 206: Partial Content. 성공했으나 데이터의 일부만 반환
+  - 3xx(리다이렉션)
+    - 301: Moved Permanently. 요청한 자원이 새 URL에 존재
+    - 303: See Other. 요청한 자원이 임시 주소에 존재
+    - 304: Not Modified. 요청한 자원이 변경되지 않았으므로 클라이언트에 캐싱된 자원을 사용하도록 권고
+  - 4xx(클라이언트 에러)
+    - 400: Bad Request. 잘못된 요청
+    - 401: Unauthorized. 권한 없이 요청, Authorization 헤더가 잘못된 경우
+    - 403: Forbidden. 해당 자원에 대한 접근 금지
+    - 405: Method Not Allowd. 허용되지 않은 요청 메소드
+    - 409: Conflict. 최신 자원이 아닌데 업데이트 하는 경우(파일 업로드 시 버전 충돌)
+  - 5xx(서버 에러)
+    - 501: Not Implemented. 요청한 동작에 대해 서버가 수행할 수 없는 경우
+    - 503: Service Unavailable. 서버가 과부하 또는 유지 보수로 인해 동작하지 않는 상태
 
 <br>
 <br>
@@ -1268,8 +1297,9 @@ https://backlog.com/git-tutorial/kr/stepup/stepup1_4.html
 - HTTPS의 동작 방식
   - 공개키 암호화 방식과 공개키 암호화 방식의 느리다는 단점을 커버하기 위해 대칭키 암호화 방식을 함께 사용한다.
   - HTTP에 SSL을 적용하기 위해서는 인증서를 발급받아 서버에 적용시켜야 한다. - 인증서란? 사용자가 접속한 서버가 사용자가 접속하려고 한 서버가 맞는지 보장하는 역할. CA에서 인증서를 발급한다.
-    <br>
-    <br>
+
+<br>
+<br>
 
 # **Q. MSA**
 
@@ -1278,16 +1308,73 @@ https://backlog.com/git-tutorial/kr/stepup/stepup1_4.html
 - 각각의 어플리케이션을 약한 결합도와 강한 응집도를 목표로 함
 - 각각의 어플리케이션으로 독립된 서비스를 제공하더라도 문제가 없어야 함
 - Monolithic에 비해 네트워크 트래픽 등 코스트가 증가한다
+- 장점
+  - 배포관점: 서비스 별 개별 배포 가능(전체 서비스의 중단이 없음) - 요구사항을 신속하게 반영하고 빠르게 배포 가능
+  - 확장관점: 특정 서비스에 대한 확장이 용이함 - 클라우드 사용에 적합
+  - 장애관점: 장애가 전체 서비스로 확장될 가능성이 적음 - 부분적 장애에 대한 격리가 용이
+- 단점
+  - 성능: 서비스간 호출시 API를 사용하므로 통신 비용이나 latency가 증가
+  - 테스트&트랜잭션: 서비스가 분리되어 있으므로 테스트와 트랜잭션의 복잡도가 증가하고 많은 자원을 필요로 함
+  - 데이터관리: 데이터가 여러 서비스에 분산되므로 한번에 조회하기 어려움
 
 <br>
 <br>
 
 # **Q. JWT (특징 등)**
 
+- JSON Web Token: 토큰 기반 인증 시스템을 제공하는 도구
+- 토큰 기반 인증 시스템: 클라이언트가 매 요청시 서버측에서 전달받은 토큰을 함께 전송하는 것
+  - 장점
+    - Stateless하며 확장성(Scalability: 서버를 확장)이 있다
+    - 쿠키를 사용할 때 발생하는 취약점이 사라진다
+    - Extensibility: 로그인 정보가 사용되는 분야를 확장. OAuth 같은 것
+- JWT를 사용하면, 유저가 서버에 요청을 보낼 때 JWT를 포함하여 요청을 전송하면 되므로 서버가 Session을 관리하지 않아도 된다.
+- JWT의 구조 [ 헤더.내용(payload).서명(signature) ]
+  - 헤더
+    - type: 토큰의 타입(jwt)를 지정
+    - alg: 해싱 알고리즘을 지정(토큰을 검증할 때 사용되는 signature부분에서 사용)
+  ```
+  {
+    "typ": "JWT",
+    "alg": "HS256"
+  }
+  ```
+  - 내용(payload)
+    - payload에 담기는 정보의 한 조각을 claim이라고 하며 (name, value)의 쌍으로 이루어져있다. 여러개의 claim을 포함할 수 있다.
+    - 등록된(registered) claim: 서비스에 필요한 정보가 아닌 토큰에 대한 정보를 담기위해 이름이 이미 정해진 claim. 등록된 claim의 사용은 optional이다.
+      - iss: 토큰 발급자(issuer)
+      - sub: 토큰 제목(subject)
+      - aud: 토큰 대상자(audience)
+      - exp: 토큰 만료시간 ( NumericDate(timestamp)형식: 1970년 1월 1일 자정을 0으로 하고, 현재까지 몇 초가 지났는지를 나타냄 )
+      - nbf: Not Before. 토큰의 활성 날짜( 이 날짜 이후에 토큰이 활성화 됨 )
+      - iat: 토큰 발급시간
+      - jti: JWT의 고유 식별자. 중복 처리를 방지하기 위해 사용
+    - 공개(public) claim: 충돌이 방지된(collision-resistant) 이름을 가지고 있어야 한다. 충돌을 방지하기 위해 claim 이름을 URI형식으로 한다.
+    - 비공개(private) claim: 통신의 양 측간에 협의하에 사용되는 claim. 이름이 중복되어 충돌될 수 있다.
+  ```
+  {
+    "iss": "velopert.com", // registered
+    "exp": "1485270000000", // registered
+    "https://velopert.com/jwt_claims/is_admin": true, // public
+    "userId": "11028373727102", // private
+    "username": "velopert" // private
+    }
+  ```
+  - 서명(signature)
+    - (헤더의 인코딩 값 + . + 내용의 인코딩 값)을 해싱 후 인코딩
+- 최종적으로 헤더의 인코딩 값, 내용의 인코딩 값, 서명의 인코딩 값을 얻게 되는데 이것을 . 으로 연결한 것이 JWT 토큰이다.
+
 <br>
 <br>
 
 # **Q. MVC 패턴**
+
+- 하나의 애플리케이션을 구성할 때 Model, View, Controller 세가지 구성요소가 각각의 역할을 하도록 구분한 디자인 패턴
+  - Model: 백그라운드에서 동작하는 로직을 처리
+  - View: 사용자가 보게 될 결과 화면을 출력
+  - Controller: 사용자의 입력처리와 흐름 제어를 담당
+- 서로 분리되어 각자의 역할만을 수행하도록 개발하여 유지보수성, 확장성, 유연성이 증가
+- 복잡한 대규모 프로젝트에서는 다수의 View와 Model이 Controller에 의해 통제되어야 하므로 Controller가 커지는 단점이 있다.
 
 <br>
 <br>
@@ -1298,6 +1385,21 @@ https://backlog.com/git-tutorial/kr/stepup/stepup1_4.html
 <br>
 
 # **Q. JVM의 메모리 구조**
+
+<br>
+<br>
+
+# **Q. URL과 URI**
+
+<br>
+<br>
+
+# **Q. CORS**
+
+<br>
+<br>
+
+# **Q. Proxy**
 
 <br>
 <br>
