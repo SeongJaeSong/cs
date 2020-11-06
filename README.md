@@ -1320,7 +1320,7 @@ https://backlog.com/git-tutorial/kr/stepup/stepup1_4.html
 <br>
 <br>
 
-# **Q. JWT (특징 등)**
+# **Q. JWT**
 
 - JSON Web Token: 토큰 기반 인증 시스템을 제공하는 도구
 - 토큰 기반 인증 시스템: 클라이언트가 매 요청시 서버측에서 전달받은 토큰을 함께 전송하는 것
@@ -1381,25 +1381,152 @@ https://backlog.com/git-tutorial/kr/stepup/stepup1_4.html
 
 # **Q. 브라우저의 동작 방식**
 
+- 브라우저: 사용자가 참조하고자 하는 웹페이지를 서버에 요청하고, 응답을 받아 표시하는 것
+- HTML, CSS 처리과정(렌더링 엔진이 처리)
+  - 서버로부터 HTML, CSS, Javascript, 이미지 파일 등을 받아온다
+  - HTML은 HTML 파서, CSS는 CSS파서에 의해 파싱되어 DOM, CSSOM 트리로 변환되고, 이것들은 렌더 트리로 결합된다.
+  - 생성된 렌더 트리를 배치한다.
+  - 배치된 렌더 트리를 기반으로 렌더링한다.
+- Javascript 처리과정(자바스크립트 엔진이 처리)
+  - HTML 파서는 script 태그를 만나면 이를 실행하기 위해 DOM 생성 프로세스를 중지하고 자바스크립트 엔진으로 제어 권한을 넘긴다
+  - 자바스크립트 엔진은 자바스크립트 파일을 로드하고 파싱하여 실행한다.
+  - 자바스크립트 실행이 완료되면 다시 HTML 파서로 제어권한을 넘기고, 중지한 시점부터 DOM 생성을 재개한다.
+- 위와 같이 브라우저는 동기적으로 HTML, CSS, Javascript를 처리하므로 script 태그로 인해 Blocking이 발생할 수 있다. 따라서 HTML문서 내 자바스크립트의 위치를 결정하는 것은 중요하다.
+  - 주로 body 요소의 가장 아래 자바스크립트를 위치시키는데, 이것은 DOM을 생성할 때 스크립트 로딩시간으로 인해 렌더링 시간이 길어지는것을 방지하며 DOM이 완성 되기 전 자바스크립트가 DOM을 조작하는 것을 방지한다.
+
 <br>
 <br>
 
 # **Q. JVM의 메모리 구조**
+
+- https://jeong-pro.tistory.com/148
+
+  ![JVM](./md_images/JVM.png)
+
+- JVM(Java Virtual Machine)
+
+  - 자바 바이트 코드를 실행할 수 있는 런타임
+  - CPU나 운영체제에 구애받지 않고 실행 가능하다(WORA: Write Once Run Anywhere)
+  - 즉, 자바 코드를 컴파일해서 얻은 바이트 코드를 JVM이 구동되는 운영체제가 이해할 수 있는 기계어로 변환하는 역할을 한다.
+  - 구성요소
+
+    - Class Loader
+      - 바이트코드 파일을 엮어서 JVM이 운영체제로부터 할당 받은 메모리 영약인 Runtime Data Area로 적재하는 역할. 자바 애플리케이션이 실행중일 때 수행
+        ( .java 소스를 컴파일하면 .class(바이트코드) 파일이 생성된다. )
+    - Execution Engine
+      - Class Loader에 의해 메모리에 적재된 바이트코드를 기계어로 변경해 명령어 단위로 실행하는 역할을 한다.
+      - Interpreter방식과 JIT컴파일 방식이 있다.
+    - Garbage Collector
+      - **Heap 영역**에 생성된 객체들 중 참조되지 않는 객체를 탐색한 후 제거하는 역할을 한다.(Heap영역이 GC의 주 대상이며 stack 영역과 method 영역도 GC의 대상이다.)
+      - 언제 GC가 동작하는지는 정확히 알수 없으며 GC가 수행하는 쓰레드가 실행되는 동안 다른 모든 쓰레드는 일시정지된다.
+      - Full GC(Major GC)가 일어나서 수 초간 모든 쓰레드가 정지한다면 장애로 이어질 수 있다.
+    - Runtime Data Area
+
+      - JVM의 메모리 영역으로 자바 애플리케이션을 실행할 때 사용되는 데이터를 적재하는 영역이다.
+      - Method Area
+        - 클래스 멤버 변수의 이름, 데이터 타입, 접근 제어자 등과 같은 필드 정보와 메소드 이름, 리턴 타입, 파라미터, 접근제어자 등과 같은 메소드 정보, Type정보(Interface인지 Class인지), Constant Pool(문자 상수, 타입, 필드, 객체 참조를 저장), static 변수, final class 변수 등이 생성되는 영역.
+      - Heap Area
+        - new 키워드로 생성된 객체와 배열이 생성되는 영역.
+        - 메소드 영역에 로드된 클래스만 생성이 가능하고, GC가 참조되지 않는 메모리를 확인 및 제거하는 영역이다.
+      - Stack Area
+
+        - 지역변수, 파라미터, 리턴값, 연산에 필요한 임시 값 등이 생성되는 영역
+        - 메소드를 호출할 때마다 개별적으로 스택이 생성
+
+        ```
+        Person p = new Person();
+
+        위 코드에서 Person p는 스택 영역에 생성되고 new로 생성된 Person 클래스의 객체(인스턴스)는 힙 영역에 생성된다.
+        스택영역에 생성된 p는 힙 영역의 주소를 값으로 가진다. 즉, 스택에 생성된 p가 힙에 생성된 객체를 참조하는 것이다.
+        ```
+
+      - PC Register(Program Counter Register)
+        - 쓰레드가 생성될 때마다 생성되는 영역으로 현재 쓰레드가 실행되는 부분의 주소와 명령을 저장하는 영역이다.
+      - Native Method Stack
+        - 자바 외의 언어로 작성된 네이티브 코드를 위한 메모리 영역이다.
+        - 보통 C/C++등의 코드를 수행하기 위한 스택이다.(JNI)
+
+  - 쓰레드가 생성되면, 메소드 영역과 힙 영역은 모든 쓰레드가 공유하고, 스택 영역과 PC 레지스터와 Native method stack은 각각의 쓰레드마다 생성되며 공유되지 않는다.
+  - Heap area & Garbage Collector
+    - Heap 영역은 Eden, Survivor1, Survivor2, Old, Permanent영역으로 나뉜다.
+      ( JDK8 이후 permanent 영역은 제거되고 Native stack 영역에 meta space 영역이 추가 되었음 )
+    - 힙을 5개 영역으로 구성한 이유는 GC를 효율적으로 동작하게 하기 위함이다.
+    - Minor GC: New 영역(Eden, Survivor1, Survivor2)에서 일어나는 GC
+      - 객체 최초 생성시 Eden영역에 저장
+      - Eden 영역에 객체가 가득 차면 첫번째 GC가 발생
+        - Survivor1 영역에 Eden 영역의 메모리를 그대로 복사하고, Survivor1 영역을 제외한 다른 영역의 객체를 제거
+      - Eden 영역도 가득 차고 Survivor1 영역도 가득 차게 되면 Eden 영역과 Survivor1 영역의 객체들 중 참조되지 않는 객체가 있는지 검사
+      - 참조 되지 않는 객체는 그대로 두고, 참조되는 객체를 Survivor2 영역에 복사
+      - Survivor2 영역을 제외한 다른 영역의 객체를 제거
+      - 위 과정 중 일정 횟수 이상 참조되는 객체를 Survivor2 영역에서 Old영역으로 이동시킨다.
+      - 위 과정을 계산 반복하며, Survivor2 영역이 가득 차기 전에 계속해서 Old로 이동시킨다.
+    - Major GC(Full GC): Old 영역에서 일어나는 GC
+      - Minor GC보다 시간이 오래 걸리며, 실행중 GC를 제외한 모든 쓰레드가 중지된다.
+        - Major GC가 발생하면 Old 영역에 존재하는 참조가 없는 객체를 모두 제거하게 되는데, 이때 heap 메모리 영역에 객체가 제거되고 구멍난 빈 메모리 공간이 생기는데, 이 부분을 없애기 위해 재구성을 해야한다. 따라서 메모리를 옮기는 중 다른 쓰레드가 메모리를 사용하지 못하게 하기위해 모든 쓰레드가 중지된다.
+      - Old 영역에 있는 모든 객체들을 검사하여 참조되고 있는지 확인
+      - 참조되지 않은 객체를 한번에 제거한다.
 
 <br>
 <br>
 
 # **Q. URL과 URI**
 
+- URI(Uniform resource Identifier): 네트워크 상에서 자원 위치를 알려주기 위한 규약
+- URL(Uniform Resource Locator): 통합 자원 식별자로 인터넷에 있는 자원을 나타내는 유일한 주소
+- URL이 URI에 포함되는 개념이다.
+  - https://somewhere.com/12
+    - URL: https://somewhere.com
+    - URI: https://somewhere.com/12
+  - https://somewhere.com/somepage?sort=time
+    - URL: https://somewhere.com/somepage
+    - URI: https://somewhere.com/sompage?sort=time
+
 <br>
 <br>
 
 # **Q. CORS**
 
+- CORS(Cross-Origin Resource Sharing): 다른 출처(Origin)의 자원에 접근할 수 있는 권한을 부여하도록 브라우저에 알려주는 것
+- 보안상의 이유로 브라우저는 스크립트에서 외부 출처로 HTTP요청을 제한하는데, 이것을 SOP(Same-Origin Policy)라고 한다.
+- 여기서 Origin이란 도메인과 포트를 의미한다. 즉, localhost:3000에서 localhost:8000으로 자원을 요청해도 SOP 때문에 데이터를 정상적으로 받을 수 없다.
+- 이것을 해결하기 위해 서버측 `Access-Control-Allow-Origin` 헤더에 클라이언트의 origin을 추가하는 방식으로 CORS를 사용한다.
+
 <br>
 <br>
 
-# **Q. Proxy**
+# **Q. Proxy Server**
+
+- 주로 보안상의 이유로 직접 통신할 수 없는 서버-클라이언트 구조의 사이에서 대리로 통신을 수행하는 기능을 'Proxy'라고 하고, 그 기능을 하는 서버를 'Proxy Server'라고 한다.
+- 프록시 서버는 클라이언트 입장에서 보면 서버의 역할을 하고, 서버의 입장에서 보면 클라이언트의 입장을 한다.
+- 주로 보안상의 이유로 사용되나, 캐싱과 병목 현상 방지 등을 목적으로 사용되기도 한다.
+  - 프록시 서버는 요청된 내용을 캐시를 이용해 저장해두고 캐시에 저장된 정보를 요구하는 요청에 대해서는 캐싱된 데이터를 전송한다.
+  - 외부와의 트래픽을 줄이게 되어 네트워크 병목 현상을 방지한다.
+- 프록시 서버의 위치에 따라 Forward Proxy와 Reverse Proxy로 나뉜다
+
+  - Forward Proxy
+
+    ![ForwardProxy](./md_images/ForwardProxy.png)
+
+    - 클라이언트 호스트들과 원격 리소스사이에 위치한다.
+    - 원격 서버로부터 요청된 리소스를 가져와서 요청한 사용자에게 응답하는 역할(이때, 캐싱되어 있다면 캐싱된 데이터를 응답)
+    - 클라이언트 호스트가 웹 브라우저를 통해 프록시 서버 사용 설정을 해야하므로 프록시 서버를 인식할 수 있다.
+    - 대역폭 사용을 감소시킬 수 있으며 접근 정책을 구성하기가 용이하고, 비용이 저렴하다.
+    - 사용자가 정해진 사이트만 연결할 수 있게 하는 등 웹 사용 환경을 제한할 수 있다. => 기업에서 주로 사용
+
+  - Reverse Proxy
+
+    ![ReverseProxy](./md_images/ReverseProxy.png)
+
+    - 인터넷 리소스 또는 인트라넷 리소스 앞에 위치한다.
+    - 클라이언트가 프록시를 인식할 수 없으며 요청 리소스에 직접 접근하는 것으로 인식한다.
+    - 내부 서버 대신 프록시 서버가 서비스를 제공하게 되는데, 그 이유는 보안이다. 기업의 네트워크 환경은 DMZ라고 하는 내부 네트워크와 외부 네트워크 사이에 위치하는 구간이 존재하는데, 이 구간에는 메일서버, 웹서버, FTP서버 등 외부 서비스를 제공하는 서버가 있다. 이 때 WAS를 DMZ에 위치하게 구성한다면, WAS가 공격받으면 DB까지 털리는 문제가 발생한다. 따라서 실제 서비스 서버는 내부망에 두고 프록시 서버만 내부에 있는 서비스 서버와 통신하며 클라이언트에게 결과를 제공하는 방식으로 운영된다.
+
+<br>
+<br>
+
+# **Q. 흐름제어, 혼잡제어, 오류제어**
+
+- https://github.com/GimunLee/tech-refrigerator/tree/master/Network
 
 <br>
 <br>
