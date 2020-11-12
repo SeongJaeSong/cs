@@ -1474,12 +1474,12 @@ https://backlog.com/git-tutorial/kr/stepup/stepup1_4.html
 - URI(Uniform resource Identifier): 네트워크 상에서 자원 위치를 알려주기 위한 규약
 - URL(Uniform Resource Locator): 통합 자원 식별자로 인터넷에 있는 자원을 나타내는 유일한 주소
 - URL이 URI에 포함되는 개념이다.
-  - https://somewhere.com/12
-    - URL: https://somewhere.com
-    - URI: https://somewhere.com/12
-  - https://somewhere.com/somepage?sort=time
-    - URL: https://somewhere.com/somepage
-    - URI: https://somewhere.com/sompage?sort=time
+  - `https://somewhere.com/12`
+    - URL: `https://somewhere.com`
+    - URI: `https://somewhere.com/12`
+  - `https://somewhere.com/somepage?sort=time`
+    - URL: `https://somewhere.com/somepage`
+    - URI: `https://somewhere.com/sompage?sort=time`
 
 <br>
 <br>
@@ -1524,9 +1524,95 @@ https://backlog.com/git-tutorial/kr/stepup/stepup1_4.html
 <br>
 <br>
 
-# **Q. 흐름제어, 혼잡제어, 오류제어**
+# **Q. TCP 통신 흐름제어, 혼잡제어, 오류제어**
 
-- https://github.com/GimunLee/tech-refrigerator/tree/master/Network
+- 흐름제어: 수신측이 패킷을 지나치게 많이 받지 않도록 데이터의 양을 조절하는 것
+  - 수신측이 송신측에게 현재 자신의 상태를 피드백
+  - 송신측 전송량이 수신측 처리량을 넘어 패킷이 손실되는 경우가 발생하는 것을 방지
+  - Stop and Wait, Sliding Window 기법이 있다.
+    - Stop and Wait
+      - 송신측에서 전송한 패킷에 대해 수신측의 ACK 패킷을 받고 다음 패킷을 전송하는 방식이다.
+      - 구조가 간단하나 패킷을 하나씩 주고받으므로 비효율적이다
+    - Sliding Window
+      - 수신측에서 설정한 윈도우의 크기만큼 송신측이 ACK패킷을 받지않고 전송하는 방식이다.
+      - 송신측의 윈도우 크기는 3-way-handshaking때 결정된다.
+      - 3-way-handshaking 과정에서 결정된 window의 크기만큼 송신한다.
+        ![SlidingWindow1](./md_images/SlidingWindow1.png)
+      - 수신측이 수신받은 데이터를 처리한 후 응답으로 자신의 버퍼에 남아있는 공간(1칸 남았어)을 알려준다.
+      - 송신측은 수신측이 데이터를 더 받을 수 있다는것을 알게되었고, 윈도우를 한칸 밀고 새롭게 윈도우에 들어온 데이터(3번)를 전송한다.
+      - 수신측에 남은 버퍼의 크기가 송신측의 윈도우보다 큰 경우 송신측의 윈도우 크기를 늘려 대응한다.
+        ![SlidingWindow2](./md_images/SlidingWindow2.png)
+      - 송신측의 버퍼는 아래와 같은 상태로 나뉜다.
+        ![SlidingWindow3](./md_images/SlidingWindow3.png)
+- 혼잡제어: 네트워크의 혼잡 상태를 인지하고 그것을 해결하기 위해 데이터 전송을 제어하는 것
+  - 흐름제어 과정 중 송신측의 윈도우 크기를 결정할 때 수신측의 윈도우 크기인 `수신자 윈도우 크기4(RWND)`와 네트워크 상황을 고려해 결정된 윈도우 크기인 `혼잡 윈도우 크기(CWND)`중 더 작은 값을 사용한다.
+  - AIMD(Additive Increase Multicative Decrease: 합 증가, 곱 감소), Slow Start라는 혼잡 회피 방법을 상황에 맞게 조합하여 혼잡 제어를 수행한다.
+    - AIMD
+      - 네트워크에 문제(혼잡)가 없을 때에는 혼잡 윈도우의 크기를 1씩 증가시키고, 혼잡을 인지하면(데이터 또는 응답 손실) 혼잡 윈도우 크기를 반으로 줄인다.
+      - 네트워크 대역이 충분히 여유로운 상황에서도 윈도우 크기를 1씩 증가시키므로 비효율적이라는 문제가 있다.
+    - Slow Start
+      - 윈도우 크기를 증가시킬때는 지수적으로 증가시키고, 혼잡이 감지되면 윈도우 크기를 1로 줄이는 방식이다.
+      - AIMD 방식을 사용하면 윈도우 크기를 선형적으로 증가시키므로 최대 전송 속도에 도달하기까지 시간이 많이 소요된다는 단점을 해결
+  - 혼잡제어 정책: Tahoe, Reno, New Reno, Cubic, Elastic-TCP 등이 있다.
+    - 이 정책들은 공통적으로 `혼잡이 발생하면 윈도우 크기를 감소시키거나, 증가를 멈추어 혼잡을 회피한다`라는 전제를 바탕으로 한다.
+    - Tahoe, Reno 두 방식 모두 Slow Start 방식을 사용하다가 네트워크의 혼잡을 감지하면 AIMD 방식으로 전환하는 정책이다.
+    - TCP Tahoe (=Tahoe)
+      ![Tahoe](./md_images/Tahoe.png)
+      - Slow Start를 사용해 윈도우 크기를 지수적으로 증가시키다가 `ssthresh(Slow Start Threshold)`에 도달하면 AIMD를 사용한다.
+      - `ACK Duplicated` 또는 `Timeout`이 발생하면 네트워크에 혼잡이 발생되었다고 판단하고 ssthresh와 혼잡 윈도우 크기를 수정하며 Slow Start로 윈도우 크기를 다시 키워나간다.
+      - ssthresh의 값은 혼잡 상황이 발생한 상태의 혼잡 윈도우 크기의 절반으로 하며 혼잡 윈도우 크기는 1로 변경한다.
+      - 혼잡상황이 발생했을 때 혼잡 윈도우 크기를 1부터 다시 키워나가야 하므로 시간이 오래걸린다는 단점이 있다.
+    - TCP Reno (=Reno)
+      ![Reno](./md_images/Reno.png)
+      - Tahoe 방식이 가진 혼잡 윈도우 크기를 키우는데 시간이 오래걸린다는 단점을 보완한 정책이다.
+      - `빠른 회복(Fast Recovery)` 방식을 사용하여 Tahoe의 단점을 보완하였다.
+      - Tahoe는 `ACK Duplicated`와 `Timeout`을 구분하지 않는 반면 Reno는 둘을 구분하여 처리한다.
+      - ssthresh에 도달하기 까지 Slow Start방식을 사용하는 것은 동일하나 `ACK Duplicated`가 발생했을 때 AIMD를 사용한다.
+      - `ACK Duplicated`의 경우 윈도우 크기를 반으로 줄이며(Tahoe는 1로 변경) ssthresh는 줄어든 윈도우의 크기와 같게 변경한다.
+    - 정리
+      - Tahoe와 Reno 모두 Slow Start로 시작, ssthresh에 도달했을 때 AIMD로 전환
+      - Tahoe는 `3 ACK Duplicated` 또는 `Timeout`이 발생했을 때 혼잡 윈도우 크기를 1로 변경하고 ssthresh를 혼잡이 발생한 상태의 혼잡 윈도우 크기로 변경, Slow Start로 윈도우 크기를 다시 키움
+      - Reno는 `3 ACK Duplicated`가 발생했을 때 `혼잡 윈도우 크기`를 `혼잡이 발생한 상태의 혼잡 윈도우 크기의 반`으로 변경하고 ssthresh도 동일하게 변경, AIMD로 윈도우 크기를 다시 키움(Fast Recovery)
+      - Reno가 `Timeout`이 발생했을 때 혼잡 윈도우 크기를 1로 변경하고 ssthresh는 변경하지 않으며 Slow Start로 윈도우 크기를 다시 키운다.
+- 오류 제어: 통신중 오류가 발생하면 송신측이 수신측에게 해당 데이터를 재전송하는 것
+  - 오류를 파악하는 방법은 크게 `수신측이 송신측에게 NACK(부정응답)을 보내는 것`과 `송신측이 ACK(긍정응답)을 받지 못하거나 중복된 ACK를 받는 경우` 두 가지로 나뉜다.
+  - NACK를 사용하게되면 수신측이 ACK를 보낼지 NACK를 보낼지 선택하는 로직이 추가적으로 필요하므로 일반적으로 ACK만을 사용하여 오류를 파악한다.
+  - 오류제어 방식에는 Stop and Wait, Go Back N, Selective Repeat이 있다.
+    - Stop and Wait
+      - 흐름 제어의 Stop and Wait과 동일한 방식으로 수신측으로부터 응답이 오지 않으면 데이터를 재송신하므로 오류제어의 기능도 한다.
+    - Go Back N
+      - 데이터를 연속적으로 송신하다가 그 중 어느 데이터부터 오류가 발생했는지를 검사하는 방식이다.
+      - 수신측에서 데이터를 수신하다가 어떤 데이터의 오류 발생을 감지하면 해당 데이터 이후에 받은 모든 데이터를 폐기하고 송신측에게 오류가 발생한 데이터 이후의 데이터를 재전송요청하는 방식이다.
+      - 예를들어 송신측이 1\~10번까지의 데이터를 송신하였고 수신측은 6번을 제외한 모든 데이터를 정상적으로 수신한 경우에, 6번 데이터에서 오류가 발생했으므로 6\~10번 데이터를 폐기하고 재송신 요청하는 것이다.
+      - 이처럼 정상적으로 송신한 데이터까지 폐기 후 재전송해야하므로 비효율이 존재한다.
+    - Selective Repeat
+      - Go Back N 방식의 정상적으로 수신한 데이터를 폐기한다는 비효율을 해결하기 위해 에러난 데이터만을 재전송하는 방식이다.
+      - Selective Repeat 방식을 사용하게 되면 수신측의 버퍼에 데이터가 순차적으로 정렬되어있지 않게 된다. 따라서 재전송 받은 데이터를 정렬하기 위한 추가적인 버퍼가 필요하며, 재전송할 데이터가 줄어든 대신 재정렬이라는 과정이 추가된다.
+      - 예를들어 송신측이 1\~10번까지의 데이터를 송신하였고 수신측은 6번을 제외한 모든 데이터를 정상적으로 수신한 경우에, 6번 데이터에서 오류가 발생했으므로 6번 데이터를 폐기한다. 이때 버퍼의 상태는 `[1,2,3,4,5,7,8,9,10]`이 된다. 그 후 6번 데이터를 재전송 받고 버퍼를 재정렬하게 된다.
+      - 결국 Go Back N 방식에 비해 재전송이라는 과정이 줄어든 대신 재정렬이라는 과정이 추가되었으므로, 두가지 방식 중 재전송 하는 것이 더 이득이라고 판단되는 상황에서는 Go Back N 방식을 사용하고 재정렬하는 것이 더 이득이라고 판단되는 상황에서는 Selective Repeat 방식을 사용한다.
+- https://evan-moon.github.io/2019/11/22/tcp-flow-control-error-control/
+
+<br>
+<br>
+
+# **Q. TDD, DDD**
+
+<br>
+<br>
+
+# **Q. GOF, SOLD, KISS, YAGNI, DRY**
+
+<br>
+<br>
+
+# **Q. 캐싱**
+
+- CDN, 서버 사이드(Redis, Memcached), 클라이언트 사이드
+
+<br>
+<br>
+
+# **Q. 메시지 브로커(RabbitMQ, Kafka)**
 
 <br>
 <br>
