@@ -58,7 +58,9 @@
 ### 1. 체이닝(Chaining)
 
 - Bucket(Hash Table)내에 Linked List를 할당하여 해시 충돌이 발생하면 Linked List로 데이터를 연결하는 방식
+
   ![image](https://t1.daumcdn.net/cfile/tistory/2525963E580F616926)
+
 - 장점
   - Linked List만 사용하면 되므로 복잡한 계산식을 사용할 필요가 적어진다
   - 해시 테이블이 채워질수록 Lookup 성능이 선형적으로 저하된다.
@@ -145,7 +147,7 @@
 ## 단점
 
 - 시스템이 복잡해질수록 Query가 복잡해지고 성능이 저하
-- 수평적인 확장이 어려움
+- 수평적인 확장(Scale-out)이 어려움
 
 <br>
 <br>
@@ -171,27 +173,24 @@
 - 트랜잭션의 직렬성: 트랜잭션들을 병행 처리한 결과가 순차적(직렬적)으로 수행한 결과와 같아지는 성질
 - 직렬성 방해의 유형
 
-  1. 충돌 직렬성
-
-  - 문제: 두 명령어 I, J중 하나가 동시 접근한 항목 Q에 대해 Write연산 수행 시 T<sub>i</sub>, T<sub>j</sub>이 충돌.
-  - 해결방안: 하나의 튜플에 대해 Read와 Write 사이에 다른 트랜잭션의 Write제거
-
-  2. 뷰 직렬성
-
-  - 문제: 맹목 쓰기(Blind write: read없이 write만 실행)시 직렬성이 훼손
-    |T<sub>1</sub>|T<sub>2</sub>|T<sub>3</sub>|
-    |:---:|:---:|:---:|
-    |Read(Q)|||
-    ||Write(Q)|
-    |Write(Q)||
-    |||Write(Q)|
-  - 해결방안: 하나의 트랜잭션에 대해 Read와 Write사이의 Write를 순차적 실행
-    |T<sub>1</sub>|T<sub>2</sub>|T<sub>3</sub>|
-    |:---:|:---:|:---:|
-    |Read(Q)|||
-    |Write(Q)|
-    ||Write(Q)||
-    |||Write(Q)
+  - 충돌 직렬성
+    - 문제: 두 명령어 I, J중 하나가 동시 접근한 항목 Q에 대해 Write연산 수행 시 T<sub>i</sub>, T<sub>j</sub>이 충돌.
+    - 해결방안: 하나의 튜플에 대해 Read와 Write 사이에 다른 트랜잭션의 Write제거
+  - 뷰 직렬성
+    - 문제: 맹목 쓰기(Blind write: read없이 write만 실행)시 직렬성이 훼손
+      |T<sub>1</sub>|T<sub>2</sub>|T<sub>3</sub>|
+      |:---:|:---:|:---:|
+      |Read(Q)|||
+      ||Write(Q)|
+      |Write(Q)||
+      |||Write(Q)|
+    - 해결방안: 하나의 트랜잭션에 대해 Read와 Write사이의 Write를 순차적 실행
+      |T<sub>1</sub>|T<sub>2</sub>|T<sub>3</sub>|
+      |:---:|:---:|:---:|
+      |Read(Q)|||
+      |Write(Q)|
+      ||Write(Q)||
+      |||Write(Q)
 
 - 직렬성 보장 방안(동시성 제어 기법)
   - Locking(Shared): 트랜잭션 수행 시 해당 트랜잭션의 데이터 항목에 대해(튜플에 대해) 읽기만 가능
@@ -213,10 +212,8 @@
 - 멀티코어 CPU에서는 쓰레드가 여러 코어에서 동시에 돌아가야하지만 GIL이 있기 때문에 코어의 개수에 상관없이 특정 시점에서 하나의 코어(쓰레드)만 실행된다.
 - 필요성: 메모리를 관리하는 방법이 thread-safe하지 않기 때문
 - 결론: 파이썬에서 병렬처리를 구현하는 방법은 멀티 쓰레딩, 멀티 프로세싱 두가지이다.
-
-  멀티 쓰레딩은 가볍지만 GIL로 인해 계산 처리를 하는 작업은 한번에 하나의 쓰레드만 동작하여 CPU 작업이 적고 I/O작업이 많은 병렬 처리 프로그램에서 효과를 볼 수 있다.
-
-  _멀티 프로세싱은 각 프로세스가 고유한 메모리 영역을 가지기 때문에 더 많은 메모리를 필요로 하지만 각각의 프로세스에서 병렬로 CPU작업을 할 수 있다._
+  - 멀티 쓰레딩은 가볍지만 GIL로 인해 계산 처리를 하는 작업은 한번에 하나의 쓰레드만 동작하여 CPU 작업이 적고 I/O작업이 많은 병렬 처리 프로그램에서 효과를 볼 수 있다.
+  - 멀티 프로세싱은 각 프로세스가 고유한 메모리 영역을 가지기 때문에 더 많은 메모리를 필요로 하지만 각각의 프로세스에서 병렬로 CPU작업을 할 수 있다.
 
 <br>
 <br>
@@ -272,19 +269,22 @@
 - GQL은 요청과 응답만 필요할 경우에 Query로 인해 요청의 크기가 REST API보다 커진다.
 - GQL은 재귀적인 Query가 불가능하므로 결과에 따라 응답의 깊이가 깊어질 수 있는 API를 만들 수 없다.
 - REST 시나리오
+
   ```
   글의 목록을 가져오는 Endpoint 와 댓글의 목록을 가져오는 Endpoint 에 각각 요청을 여러 번 한다. 글이 5 개 있다고 해보자.
   이 경우에는 글의 목록을 가져오는 Endpoint 에 요청을 하고,
   각 글마다 댓글의 목록을 가져오는 Endpoint 에 요청을 5 번 해야 글과 댓글의 목록을 모두 가져올 수 있을 것이다.
   글의 목록을 가져오는 Endpoint 의 응답에 댓글의 목록을 포함한다.
+
   글이 5 개 있다고 해보자.
   이 경우에는 글의 목록을 가져오는 Endpoint 에 요청을 1 번 하면 끝이지만,
   글의 목록만 가져와야 하는 경우나 몇몇 글의 댓글만 가져와야 하는 경우가 있다면
   필요한 정보에 비해서 응답의 크기가 쓸데없이 큰 경우가 발생할 것이다.
   글의 목록을 가져오는 요청에 조건을 달아서 댓글의 목록을 포함할 수도, 포함하지 않을 수도 있게 한다.
-  API 에 Endpoint 가 많을 경우, API 를 만드는 것이 점점 더 복잡해지고,
-  결국 Facebook 에서 GraphQL 을 만든 이유와 비슷한 상황에 처하게 된다.
+  API에 Endpoint가 많을 경우, API를 만드는 것이 점점 더 복잡해지고,
+  결국 Facebook에서 GraphQL을 만든 이유와 비슷한 상황에 처하게 된다.
   ```
+
 - GQL 시나리오
   ```
   글의 목록만을 가져와야 할 경우에는 글의 목록만을 가져오는 Query 를 작성하여 서버에 요청을 보낸다.
@@ -312,21 +312,28 @@ https://backlog.com/git-tutorial/kr/stepup/stepup1_4.html
 ## **차이점**
 
 - 기존 commit tree
+
   ![Origin](./md_images/origin.png)
+
 - Merge
+
   ![Merge](./md_images/merge.png)
+
 - Rebase
+
   ![Rebase](./md_images/rebase.png)
-  <br>
-  <br>
 
-# **Q. Race condition에 대해 설명**
+<br>
+<br>
 
-- 두 개 이상의 병렬적인 Thread들이 공유된 자원에 접근하려고 할 때 동기화 메커니즘 없이 접근하려고 하는 상황
-  <br>
-  <br>
+# **Q. Race condition**
 
-# **Q. Singleton패턴에 대해 설명**
+- 두 개 이상의 병렬적인 Thread들이 동기화 메커니즘 없이 공유된 자원에 접근하려고 하는 상황
+
+<br>
+<br>
+
+# **Q. Singleton패턴**
 
 - 개념
   - Application이 시작될 때 어떤 클래스가 최초 한번만 메모리를 할당하고(Static) 그 메모리에 인스턴스를 만들어 사용하는 디자인 패턴. 생성자가 여러번 호출되어도 실제로 생성되는 객체는 하나이며 최소 생성 이후에 호출된 생성자는 최초에 생성한 객체를 반환한다. => 단 하나의 인스턴스를 생성해 사용하는 디자인 패턴.
@@ -338,8 +345,9 @@ https://backlog.com/git-tutorial/kr/stepup/stepup1_4.html
 - 문제점
   - 싱글톤 인스턴스가 너무 많은 일을 하거나 많은 데이터를 공유시킬 경우 다른 클래스의 인스턴스들 간에 결합도가 높아져 "개방-폐쇄 원칙"을 위배하게 된다(객체 지향 설계 원칙에 어긋남) => 수정이 어렵고 테스트하기 어렵다
   - 멀티쓰레드환경에서 동기화처리를 안하면 인스턴스가 두개 생성되는 등 문제가 발생할 수 있음.
-    <br>
-    <br>
+
+<br>
+<br>
 
 # **Q. DOM이란?**
 
@@ -369,35 +377,35 @@ https://backlog.com/git-tutorial/kr/stepup/stepup1_4.html
 
 ![fastforward-merge](./md_images/fastforward-merge.png)
 
-1. Fast-forward merge
+- Fast-forward merge
 
-   - 이 'bugfix' 브랜치를 'master'브랜치로 병합할 때, 'master'브랜치의 상태가 이전부터 변경되어 있지 않으면 매우 쉽게 병합할 수 있다. 'bugfix' 브랜치의 이력은 'master'브랜치의 이력을 모두 포함하고 있으므로 'master'브랜치가 단순히 이동하기만 해도 'bugfix'브랜치의 내용을 적용 할 수 있다. 이를 `fast-forward merge`라고 한다.
+  - 이 'bugfix' 브랜치를 'master'브랜치로 병합할 때, 'master'브랜치의 상태가 이전부터 변경되어 있지 않으면 매우 쉽게 병합할 수 있다. 'bugfix' 브랜치의 이력은 'master'브랜치의 이력을 모두 포함하고 있으므로 'master'브랜치가 단순히 이동하기만 해도 'bugfix'브랜치의 내용을 적용 할 수 있다. 이를 `fast-forward merge`라고 한다.
 
-     ![fastforward-merge2](./md_images/fastforward-merge2.png)
+    ![fastforward-merge2](./md_images/fastforward-merge2.png)
 
-2. Non Fast-forward merge
+- Non Fast-forward merge
 
-   - 'bugfix'브랜치를 분기한 이후에 'master'브랜치에 여러 변경사항이 적용되는 경우가 있는데, 이 경우에는 'master'브랜치 내의 변경 내용과 'bugfix' 브랜치 내의 변경 내용을 하나로 통합할 필요가 있다.
+  - 'bugfix'브랜치를 분기한 이후에 'master'브랜치에 여러 변경사항이 적용되는 경우가 있는데, 이 경우에는 'master'브랜치 내의 변경 내용과 'bugfix' 브랜치 내의 변경 내용을 하나로 통합할 필요가 있다.
 
-     ![merge-commit1](./md_images/merge-commit1.png)
+    ![merge-commit1](./md_images/merge-commit1.png)
 
-   - 따라서 양쪽의 변경을 가져온 'merge commit'을 실행하게 된다. 병합 완료 후, 통합 브랜치인 'master' 브랜치로 통합된 이력이 아래 그림과 같이 생긴다.
+  - 따라서 양쪽의 변경을 가져온 'merge commit'을 실행하게 된다. 병합 완료 후, 통합 브랜치인 'master' 브랜치로 통합된 이력이 아래 그림과 같이 생긴다.
 
-     ![merge-commit2](./md_images/merge-commit2.png)
+    ![merge-commit2](./md_images/merge-commit2.png)
 
-3. Rebase
+- Rebase
 
-   - 위와 마찬가지로 'master' 브랜치에서 분기하는 'bugfix' 브랜치가 있다고 가정
+  - 위와 마찬가지로 'master' 브랜치에서 분기하는 'bugfix' 브랜치가 있다고 가정
 
-     ![merge-commit1](./md_images/merge-commit1.png)
+    ![merge-commit1](./md_images/merge-commit1.png)
 
-   - 우선 'bugfix' 브랜치를 'master'브랜치에 rebase 하면, 'bugfix'브랜치의 이력이 'master' 브랜치의 뒤로 이동하게 된다. 이 때 이동하는 커밋 X와 Y에 포함되는 내용이 'master'의 커밋된 버전들과 충돌하는 부분이 생길 수 있으므로 각각의 커밋에 대해 발생한 충돌 내용을 수정할 필요가 있다.
+  - 우선 'bugfix' 브랜치를 'master'브랜치에 rebase 하면, 'bugfix'브랜치의 이력이 'master' 브랜치의 뒤로 이동하게 된다. 이 때 이동하는 커밋 X와 Y에 포함되는 내용이 'master'의 커밋된 버전들과 충돌하는 부분이 생길 수 있으므로 각각의 커밋에 대해 발생한 충돌 내용을 수정할 필요가 있다.
 
-     ![rebase1](./md_images/rebase1.png)
+    ![rebase1](./md_images/rebase1.png)
 
-   - rebase만 하면 아래 그림과 같이 'master'의 위치는 그대로 유지된다. 이 위치를 변경하기 위해서는 'master'브랜치에서 'bugfix'브랜치를 fast-forward 병합하면 된다.
+  - rebase만 하면 아래 그림과 같이 'master'의 위치는 그대로 유지된다. 이 위치를 변경하기 위해서는 'master'브랜치에서 'bugfix'브랜치를 fast-forward 병합하면 된다.
 
-     ![rebase2](./md_images/rebase2.png)
+    ![rebase2](./md_images/rebase2.png)
 
 <br>
 <br>
@@ -411,11 +419,9 @@ https://backlog.com/git-tutorial/kr/stepup/stepup1_4.html
   - 클라이언트가 페이지 요청을 하면 웹 서버에서 정적 페이지(정적 페이지란 HTML 프로토콜을 통해 읽힐 수 있는 것)를 제공
   - Apache, NGINX 등
 - Web Application Server
-
   - 동적 페이지를 제공(동적 서버 콘텐츠를 수행)
   - 주로 DB와 함께 수행된다.
   - Tomcat, Jeus, JBoss, Web Sphere
-
 - 사용자가 특정 도메인에 접속하려고 하면 DNS서버에 해당 도메인에 매핑되는 IP주소를 요청한다. 응답받은 IP주소를 통해 Web Server에 접속요청을 보낸다. 이 요청은 WAS(Web Application Server)를 거쳐 DB로 이동하고 요청된 파일을 DB에서 가져와 다시 WAS를 거쳐 Web Server를 통해 웹 브라우저에게 전달된다.
 
 <br>
@@ -475,9 +481,9 @@ https://backlog.com/git-tutorial/kr/stepup/stepup1_4.html
 
       ```
       function getData(callbackFunc) {
-      \$.get('https://domain.com/products/1', function(response) {
-      callbackFunc(response); // 서버에서 받은 데이터 response를 callbackFunc() 함수에 넘겨줌
-      });
+        $.get('https://domain.com/products/1', function(response) {
+          callbackFunc(response); // 서버에서 받은 데이터 response를 callbackFunc() 함수에 넘겨줌
+        });
       }
 
       getData(function(tableData) {
@@ -485,9 +491,9 @@ https://backlog.com/git-tutorial/kr/stepup/stepup1_4.html
       });
       ```
 
-          - 비유: 일반적으로 맛집을 가면 사람이 많아 자리가 없다. 따라서 대기자 명단에 이름을 쓰고 자리가 날 때까지 할 일을 하고있는다. 만약 식당에서 자리가 생기면 전화로 연락을 해준다. 여기서 전화를 받는 시점이 JS에서 콜백 함수가 호출되는 시점이다. 자리가 준비된 시점(데이터가 준비된 시점)에서만 자리에 앉을 수 있다(특정 동작을 할 수 있다).
+      - 비유: 일반적으로 맛집을 가면 사람이 많아 자리가 없다. 따라서 대기자 명단에 이름을 쓰고 자리가 날 때까지 할 일을 하고있는다. 만약 식당에서 자리가 생기면 전화로 연락을 해준다. 여기서 전화를 받는 시점이 JS에서 콜백 함수가 호출되는 시점이다. 자리가 준비된 시점(데이터가 준비된 시점)에서만 자리에 앉을 수 있다(특정 동작을 할 수 있다).
 
-      - Call back hell(콜백지옥): 서버에서 데이터르 받아와 화면에 표시하기 까지 인코딩, 사용자 인증 등 여러 처리를 거쳐야 하는 경우가 있는데, 이 모든 과정을 비동기로 처리해야한다면 콜백 안에 콜백을 무는 형식으로 코딩을 해야한다. 이런 구조는 가독성이 떨어질 뿐더러 로직을 변경하기도 어렵다.
+      - Call back hell(콜백지옥): 서버에서 데이터를 받아와 화면에 표시하기 까지 인코딩, 사용자 인증 등 여러 처리를 거쳐야 하는 경우가 있는데, 이 모든 과정을 비동기로 처리해야한다면 콜백 안에 콜백을 무는 형식으로 코딩을 해야한다. 이런 구조는 가독성이 떨어질 뿐더러 로직을 변경하기도 어렵다.
         ```
         $.get('url', function(response) {
           parseValue(response, function(id) {
